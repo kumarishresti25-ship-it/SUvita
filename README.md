@@ -124,17 +124,13 @@ Row Level Security is enabled so users can only read and change their own scans,
 ### Overview dashboard
 Scan a barcode, enter one manually, or search by name. The cards show your real scan and save activity.
 
-![Overview dashboard](docs/screenshots/dashboard.png)
-
 ### Scan & Compare
 Scan or select two products, one slot at a time, then compare them side by side.
-
-![Scan and Compare](docs/screenshots/scan-and-compare.png)
 
 ### My Profile
 Update your display name and avatar, and change the preferences that personalise recommendations and SUvita AI answers.
 
-![My Profile](docs/screenshots/profile.png)
+All the screenshots of profile page, dashboard and scanning shared as png files.
 
 ---
 
