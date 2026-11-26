@@ -4,8 +4,6 @@
 
 SUvita is an AI-powered sustainability product intelligence platform. Users scan a product's barcode and instantly see its ingredients, a transparent sustainability score (the **EcoScore**), the confidence behind that score, and greener alternatives. A built-in assistant, **SUvita AI**, explains scores and ingredients, compares products, and helps users shop more sustainably.
 
-![SUvita dashboard](docs/screenshots/dashboard.png)
-
 > **Status:** runs locally. Deployment is planned.
 
 ---
