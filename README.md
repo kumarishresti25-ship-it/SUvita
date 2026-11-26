@@ -2,241 +2,50 @@
 
 **Scan Smart. Live Green.**
 
-SUvita is a web app that helps people make more informed purchasing decisions by scanning product barcodes and understanding a product's ingredients, sustainability profile, and greener alternatives.
+SUvita is an AI-powered sustainability product intelligence platform. Users scan a product's barcode and instantly see its ingredients, a transparent sustainability score (the **EcoScore**), the confidence behind that score, and greener alternatives. A built-in assistant, **SUvita AI**, explains scores and ingredients, compares products, and helps users shop more sustainably.
 
-> **Project status:** work in progress. The app foundation, navigation, authentication, and onboarding are built. Product scanning, scoring, and the other features listed under [Roadmap](#roadmap) are planned and are being built stage by stage.
+![SUvita dashboard](docs/screenshots/dashboard.png)
 
----
-
-## Tech stack
-
-| Area | Technology |
-| --- | --- |
-| Frontend | React + TypeScript, built with Vite |
-| Styling | Tailwind CSS |
-| Icons | Lucide React |
-| Routing | React Router |
-| Backend / database / auth | Supabase (PostgreSQL with Row Level Security) |
-| Barcode scanning | html5-qrcode (installed, not yet used) |
-| Charts | Recharts (installed, not yet used) |
-| UI components | shadcn/ui (planned) |
+> **Status:** runs locally. Deployment is planned.
 
 ---
 
-## What works today
+## Features
 
-- Dark eco-tech design system (Inter font, `#00FFAA` accent)
-- Responsive navigation: left sidebar on desktop, bottom bar with a prominent Scan button on mobile
-- All main pages routed: Overview, Scan Product, Explore Products, Compare Products, My Collection, Sustainability Insights, SUvita AI, My Profile, Settings (page content is placeholder for now)
-- Authentication with Supabase: sign up, log in, log out, password recovery
-- Onboarding questionnaire (skippable) with preferences saved to the database
-- Protected routes: logged-out users are sent to the login page, and new users are sent to onboarding
-- Row Level Security so each user can only read and change their own data
+### Scanning and product analysis
+- **Barcode scanner** using the device camera (EAN-13, EAN-8, UPC-A, UPC-E), with a scanning frame, camera switching, duplicate-scan prevention, and a clear message when camera permission is denied
+- **Manual barcode entry** and **search by product name** as fallbacks
+- **Product intelligence page** with image, name, brand, category, barcode, overall EcoScore, and an A to E grade
+- **Transparent score breakdown** showing each dimension's score, weight, and data availability, plus a "Why did this product receive this score?" explanation with the strongest and weakest factors
+- **Ingredient analysis** with purpose, available safety or regulatory information, warnings, and source, filterable by all ingredients, ingredients needing attention, and ingredients with limited information
 
----
+### Discovery and comparison
+- **Greener alternatives** recommended from the product database, taking category and user preferences into account
+- **Explore products** with search, categories, EcoScore filters, sorting, and featured, top-rated, and recently added sections
+- **Compare products** side by side (two or three products)
+- **Scan & Compare**: scan two physical products one after another and see which has the better sustainability profile, with a summary of advantages, trade-offs, and missing data. Comparisons can be saved and shared.
 
-## Prerequisites
+### Personal features
+- **Authentication** with sign up, login, logout, and password recovery
+- **Guest mode** so anyone can try the app first, with an optional **Sign in / Sync** to keep data across devices
+- **India-focused catalog** with prices shown in INR (₹) and support for Indian 890 retail barcodes
+- **Onboarding** that captures interests and priorities (skippable, and can be re-run from My Profile) and personalises recommendations
+- **My Collection** for saved products and personal collections, persisted in the user's account
+- **Sustainability Insights** with scan history, average score over time, grade distribution, and category breakdown
+- **Profile and Settings** for name, photo, preferences, and notifications
 
-- **Windows, macOS, or Linux**
-- **Node.js** (LTS version). Check with:
-  ```
-  node -v
-  npm -v
-  ```
-  On Windows you can install it with `winget install OpenJS.NodeJS.LTS`, then close and reopen PowerShell.
-- **A free Supabase account** at [supabase.com](https://supabase.com)
-- **VS Code** (recommended)
-
-On Windows, if npm is blocked with a "running scripts is disabled" error, run this once in PowerShell:
-
-```
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-```
-
----
-
-## Setup
-
-### 1. Install dependencies
-
-Open a terminal in the project folder and run:
-
-```
-npm install
-```
-
-### 2. Create your Supabase project
-
-1. In Supabase, create an organization (type **Personal**, plan **Free**), then a new project.
-2. Go to **Authentication**, **Sign In / Providers**, **Email**. For local testing, turn **off** "Confirm email".
-3. Go to **Authentication**, **URL Configuration**. Set **Site URL** to `http://localhost:5173` and add the same address under **Redirect URLs**.
-
-### 3. Create the database tables
-
-In Supabase open **SQL Editor**, then **New query**, paste the SQL below and click **Run**. You should see "Success. No rows returned".
-
-<details>
-<summary>Click to show the SQL</summary>
-
-```sql
-create table public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  full_name text,
-  avatar_url text,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-
-create table public.user_preferences (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  main_reason text,
-  categories text[] default '{}',
-  priorities text[] default '{}',
-  notifications boolean default true,
-  onboarding_completed boolean default false,
-  updated_at timestamptz default now()
-);
-
-alter table public.profiles enable row level security;
-alter table public.user_preferences enable row level security;
-
-create policy "profiles select own" on public.profiles
-  for select using (auth.uid() = id);
-create policy "profiles insert own" on public.profiles
-  for insert with check (auth.uid() = id);
-create policy "profiles update own" on public.profiles
-  for update using (auth.uid() = id) with check (auth.uid() = id);
-
-create policy "prefs select own" on public.user_preferences
-  for select using (auth.uid() = user_id);
-create policy "prefs insert own" on public.user_preferences
-  for insert with check (auth.uid() = user_id);
-create policy "prefs update own" on public.user_preferences
-  for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
-
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer set search_path = public
-as $$
-begin
-  insert into public.profiles (id, full_name)
-  values (new.id, new.raw_user_meta_data->>'full_name');
-  insert into public.user_preferences (user_id) values (new.id);
-  return new;
-end;
-$$;
-
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
-```
-
-</details>
-
-The trigger at the end automatically creates a profile and a preferences row whenever someone signs up.
-
-### 4. Add your environment variables
-
-Create a file named `.env.local` in the project's main folder (next to `package.json`):
-
-```
-VITE_SUPABASE_URL=your-project-url
-VITE_SUPABASE_ANON_KEY=your-publishable-key
-```
-
-Find both values in Supabase under **Project Settings**, **API Keys**. Use the **Project URL** and the **Publishable** (or **anon public**) key.
-
-> **Never** use the `secret` or `service_role` key in this app, and never commit `.env.local` to GitHub. Keep real secrets (such as a future AI provider key) on a backend only.
-
-### 5. Run the app
-
-```
-npm run dev
-```
-
-Open the link it prints, normally `http://localhost:5173/`. If you change `.env.local`, stop the app (**Ctrl + C**) and start it again.
+### SUvita AI
+- Chat assistant that is aware of the product database, the user's preferences, and the current product or comparison
+- Explains scores, packaging, brand information, and individual ingredients in plain language
+- Natural-language shopping requests that search the real product database and return product cards
+- Conversation history that users can clear or delete
+- The AI **does not calculate or invent scores**. Scores always come from the SUvita scoring engine, and AI explanations are kept separate from verified product data.
 
 ---
 
-## Testing the sign-up flow
+## How the EcoScore works
 
-1. Open the app. You should see the **Log in** page.
-2. Click **Create account**, fill in your name, email, and a password (6 or more characters), and click **Sign up**.
-3. Complete or skip the onboarding questions.
-4. You should land on **Overview**, with your name at the bottom of the sidebar.
-5. In Supabase, open **Table Editor**. The `profiles` and `user_preferences` tables should each contain one row for your account.
-
----
-
-## Project structure
-
-```
-suvita/
-├── index.html
-├── vite.config.ts
-├── .env.local                  # your Supabase keys (not committed)
-└── src/
-    ├── main.tsx                # app entry, router and auth provider
-    ├── App.tsx                 # all routes
-    ├── index.css               # Tailwind import
-    ├── theme.css               # SUvita colours and font
-    ├── lib/
-    │   └── supabase.ts         # Supabase client
-    ├── context/
-    │   └── AuthContext.tsx     # session, preferences, sign out
-    ├── components/
-    │   ├── Layout.tsx          # sidebar and mobile bottom bar
-    │   ├── PageStub.tsx        # temporary page placeholder
-    │   ├── ProtectedRoute.tsx  # login and onboarding guard
-    │   └── AuthShell.tsx       # shared look for auth pages
-    └── pages/
-        ├── Login.tsx
-        ├── Signup.tsx
-        ├── ForgotPassword.tsx
-        ├── ResetPassword.tsx
-        └── Onboarding.tsx
-```
-
----
-
-## Scripts
-
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | Starts the development server |
-| `npm run build` | Creates a production build |
-| `npm run preview` | Previews the production build locally |
-
----
-
-## Troubleshooting
-
-| Problem | Fix |
-| --- | --- |
-| `node` or `npm` "not recognized" | Close and reopen the terminal. If it persists, restart the computer. |
-| "Failed to resolve import" in the browser | A file is missing, misnamed, or in the wrong folder. Check the [project structure](#project-structure) and file name capitalisation. |
-| `duplicate field baseUrl` | Remove the repeated `baseUrl` and `paths` lines in `tsconfig.app.json` so only one copy remains. |
-| "Invalid API key" or "Failed to fetch" | Check the two values in `.env.local`, then restart `npm run dev`. |
-| Leaf icon keeps pulsing after login | The user has no `user_preferences` row. Make sure the SQL from step 3 ran, delete the user under **Authentication**, **Users**, and sign up again. |
-| Tables are empty | Normal until someone signs up. Rows are created at sign-up. |
-
----
-
-## Roadmap
-
-- [x] **Stage 1:** project setup
-- [x] **Stage 2:** design system, navigation, and page routes
-- [x] **Stage 3:** Supabase authentication, onboarding, and preferences
-- [ ] **Stage 4:** barcode scanner and product page with the EcoScore
-- [ ] **Stage 5:** Explore, Compare, and My Collection
-- [ ] **Stage 6:** Scan & Compare (two-product scanning)
-- [ ] **Stage 7:** Sustainability Insights, Profile, and Settings
-- [ ] **Stage 8:** SUvita AI assistant
-
-### Planned scoring approach
-
-The EcoScore will combine four weighted dimensions, each normalised to 0 to 100:
+Each component is normalised to a 0 to 100 scale and combined with these weights:
 
 | Dimension | Weight |
 | --- | --- |
@@ -245,18 +54,168 @@ The EcoScore will combine four weighted dimensions, each normalised to 0 to 100:
 | Brand Ethics | 20% |
 | Energy Footprint | 10% |
 
-Grades: A (80 to 100), B (65 to 79), C (50 to 64), D (35 to 49), E (0 to 34). Missing data will be treated as missing rather than zero, and each score will show a data-confidence indicator. Sustainability claims will only come from attributable sources, and any demonstration data will be clearly labelled as sample data.
+```
+Overall = (Ingredient Safety x 0.40) + (Packaging x 0.30) + (Brand Ethics x 0.20) + (Energy Footprint x 0.10)
+```
+
+| Grade | Score | Meaning |
+| --- | --- | --- |
+| A | 80 to 100 | Excellent |
+| B | 65 to 79 | Good |
+| C | 50 to 64 | Average |
+| D | 35 to 49 | Poor |
+| E | 0 to 34 | Very Poor |
+
+Principles behind the score:
+- **Missing data is treated as missing, not zero.** Weights are not silently redistributed, and no high score is awarded when essential information is absent.
+- Every score shows a **confidence indicator** and the percentage of available data.
+- Dimensions without data are shown as **"Insufficient data"** in comparisons.
+- Grade thresholds are configurable.
+- The same scoring engine powers the product page, comparisons, alternatives, and the AI assistant.
 
 ---
 
-## Data sources (planned)
+## Data sources and honesty about data
 
-- [Open Food Facts](https://world.openfoodfacts.org/) for food product data
-- Cosmetic and personal-care ingredient sources, subject to confirming API access and licensing
-- Packaging and brand sustainability information from credible, attributable sources
+- **Open Food Facts** for food product information, ingredients, nutrition, and available environmental indicators
+- Cosmetic and personal-care ingredient data, packaging information, and brand sustainability information from attributable sources, where accessible and permitted
+- Where real data cannot be retrieved, the app uses **clearly labelled sample data** for demonstration. Sample data is never presented as verified real-world product data.
+- SUvita does not make medical diagnoses or claim a product is harmful based on incomplete information, and it does not display invented carbon or water savings.
+
+---
+
+## Tech stack
+
+| Area | Technology |
+| --- | --- |
+| Frontend | React, TypeScript, Vite |
+| Styling | Tailwind CSS, shadcn/ui |
+| Icons | Lucide React |
+| Routing | React Router |
+| Charts | Recharts |
+| Barcode scanning | html5-qrcode |
+| Backend, database, auth | Supabase (PostgreSQL with Row Level Security) |
+| AI | LLM API called from a secure server-side service (`<provider name>`) |
+
+---
+
+## Database
+
+Main Supabase tables:
+
+`profiles`, `user_preferences`, `products`, `product_ingredients`, `sustainability_scores`, `product_sources`, `scans`, `saved_products`, `collections`, `collection_products`, `product_comparisons`, `saved_comparisons`
+
+Row Level Security is enabled so users can only read and change their own scans, saved products, collections, comparisons, and chats. Public product information is readable according to the app's access rules.
+
+---
+
+## Getting started
+
+### Prerequisites
+- Node.js (LTS) and npm
+- A free [Supabase](https://supabase.com) project
+- A modern browser with a camera. Camera access works on `localhost` and on HTTPS sites only.
+
+### 1. Clone and install
+
+```
+git clone <your-repository-url>
+cd suvita
+npm install
+```
+
+### 2. Set up Supabase
+1. Create a Supabase project.
+2. Run the SQL schema for the tables above in the **SQL Editor** (`<path to your schema file, e.g. supabase/schema.sql>`).
+3. In **Authentication**, set the Site URL to `http://localhost:5173` and add it to the Redirect URLs.
+
+### 3. Add environment variables
+
+Create a file named `.env.local` in the project root:
+
+```
+VITE_SUPABASE_URL=your-project-url
+VITE_SUPABASE_ANON_KEY=your-publishable-key
+```
+
+The AI service runs on the server side. Add its key to the **server or function environment**, not to the frontend:
+
+```
+<YOUR_LLM_API_KEY_VARIABLE>=your-ai-provider-key
+```
+
+> Never put secret or `service_role` keys in frontend code, and never commit `.env.local` to GitHub.
+
+### 4. Run
+
+```
+npm run dev
+```
+
+Open `http://localhost:5173/`.
+
+### Other scripts
+
+| Command | What it does |
+| --- | --- |
+| `npm run build` | Creates a production build |
+| `npm run preview` | Previews the production build locally |
+
+---
+
+## Using SUvita
+
+1. Sign up, then answer the quick onboarding questions (or skip them).
+2. Open **Scan Product** and scan a barcode, or enter it manually.
+3. Read the product's EcoScore, breakdown, and ingredients.
+4. Open **Greener alternatives**, save products to **My Collection**, or ask **SUvita AI** a question.
+5. Use **Scan & Compare** to scan two products and see which is the better choice for you.
+6. Check **Sustainability Insights** to follow your progress over time.
+
+---
+
+## Screenshots
+
+### Overview dashboard
+Scan a barcode, enter one manually, or search by name. The cards show your real scan and save activity.
+
+![Overview dashboard](docs/screenshots/dashboard.png)
+
+### Scan & Compare
+Scan or select two products, one slot at a time, then compare them side by side.
+
+![Scan and Compare](docs/screenshots/scan-and-compare.png)
+
+### My Profile
+Update your display name and avatar, and change the preferences that personalise recommendations and SUvita AI answers.
+
+![My Profile](docs/screenshots/profile.png)
+
+---
+
+## Known limitations
+
+- Product coverage depends on the connected data sources. Products missing from them show limited information or "Insufficient data".
+- Cosmetic, packaging, and brand data may be incomplete because not every source offers an open API.
+- Scores reflect available data and are a guide, not a certification.
+
+---
+
+## Roadmap
+
+- Deploy the app online with a public demo link
+- Wider product and ingredient coverage
+- More verified brand and packaging data sources
+- Additional languages and regional product databases
 
 ---
 
 ## Author
 
-Built by Shresti Kumari as a portfolio project.
+Built by **Shresti Kumari** as a portfolio project.
+
+`<LinkedIn or GitHub link>`
+
+## License
+
+`<Add a license, e.g. MIT, or remove this section>`
