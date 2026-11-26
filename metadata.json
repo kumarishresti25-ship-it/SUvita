@@ -1,0 +1,6 @@
+{
+  "name": "SUvita",
+  "description": "Scan Smart. Live Green. AI-powered sustainability product intelligence platform for barcode scanning, ingredient transparency, EcoScore analysis, and greener alternatives.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

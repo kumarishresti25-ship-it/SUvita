@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --color-suvita-bg: #121212;
+  --color-suvita-surface: #1C2421;
+  --color-suvita-card: #202923;
+  --color-suvita-card-hover: #253029;
+  --color-suvita-border: rgba(255, 255, 255, 0.08);
+  --color-suvita-accent: #00FFAA;
+  --color-suvita-text: #FFFFFF;
+  --color-suvita-muted: #A0AAA5;
+  --color-suvita-warning: #F59E0B;
+  --color-suvita-danger: #E05A5A;
+  --color-suvita-excellent: #00FFAA;
+}
+
+:root {
+  color-scheme: dark;
+  --background: #121212;
+  --foreground: #FFFFFF;
+  --card: #202923;
+  --card-foreground: #FFFFFF;
+  --secondary: #1C2421;
+  --secondary-foreground: #E5ECE8;
+  --muted: #1C2421;
+  --muted-foreground: #A0AAA5;
+  --accent: #00FFAA;
+  --accent-foreground: #09130F;
+  --border: rgba(255, 255, 255, 0.08);
+  --ring: #00FFAA;
+}
+
+@layer base {
+  html,
+  body {
+    background-color: #121212;
+    color: #FFFFFF;
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4 {
+    text-wrap: balance;
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtle custom scrollbars for dark eco-tech aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #121212;
+}
+::-webkit-scrollbar-thumb {
+  background: #2C3831;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3B4B42;
+}
+
+/* Barcode scanner laser animation (compositor-only transform) */
+@keyframes suvita-scan-beam {
+  0%, 100% {
+    transform: translateY(0%);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(220px);
+    opacity: 1;
+  }
+}
+
+.animate-scan-beam {
+  animation: suvita-scan-beam 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-scan-beam {
+    animation: none;
+  }
+}
