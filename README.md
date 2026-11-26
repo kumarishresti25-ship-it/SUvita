@@ -107,59 +107,6 @@ Row Level Security is enabled so users can only read and change their own scans,
 
 ---
 
-## Getting started
-
-### Prerequisites
-- Node.js (LTS) and npm
-- A free [Supabase](https://supabase.com) project
-- A modern browser with a camera. Camera access works on `localhost` and on HTTPS sites only.
-
-### 1. Clone and install
-
-```
-git clone <your-repository-url>
-cd suvita
-npm install
-```
-
-### 2. Set up Supabase
-1. Create a Supabase project.
-2. Run the SQL schema for the tables above in the **SQL Editor** (`<path to your schema file, e.g. supabase/schema.sql>`).
-3. In **Authentication**, set the Site URL to `http://localhost:5173` and add it to the Redirect URLs.
-
-### 3. Add environment variables
-
-Create a file named `.env.local` in the project root:
-
-```
-VITE_SUPABASE_URL=your-project-url
-VITE_SUPABASE_ANON_KEY=your-publishable-key
-```
-
-The AI service runs on the server side. Add its key to the **server or function environment**, not to the frontend:
-
-```
-<YOUR_LLM_API_KEY_VARIABLE>=your-ai-provider-key
-```
-
-> Never put secret or `service_role` keys in frontend code, and never commit `.env.local` to GitHub.
-
-### 4. Run
-
-```
-npm run dev
-```
-
-Open `http://localhost:5173/`.
-
-### Other scripts
-
-| Command | What it does |
-| --- | --- |
-| `npm run build` | Creates a production build |
-| `npm run preview` | Previews the production build locally |
-
----
 
 ## Using SUvita
 
@@ -199,21 +146,10 @@ Update your display name and avatar, and change the preferences that personalise
 
 ---
 
-## Roadmap
-
-- Deploy the app online with a public demo link
-- Wider product and ingredient coverage
-- More verified brand and packaging data sources
-- Additional languages and regional product databases
-
----
 
 ## Author
 
 Built by **Shresti Kumari** as a portfolio project.
 
-`<LinkedIn or GitHub link>`
-
-## License
 
 `<Add a license, e.g. MIT, or remove this section>`
