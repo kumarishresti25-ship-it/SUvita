@@ -147,5 +147,3 @@ All the screenshots of profile page, dashboard and scanning shared as png files.
 
 Built by **Shresti Kumari** as a portfolio project.
 
-
-`<Add a license, e.g. MIT, or remove this section>`
